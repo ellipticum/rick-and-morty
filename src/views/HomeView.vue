@@ -8,6 +8,7 @@
         <option value="dead">Dead</option>
         <option value="unknown">Unknown</option>
       </select>
+      <input type="number" v-model.number="inputPage" placeholder="Page" min="1" />
       <button @click="applyFilters">Apply</button>
     </div>
     <div class="character-list">
@@ -33,6 +34,7 @@ export default {
     return {
       characters: [],
       page: 1,
+      inputPage: 1,
       name: '',
       status: '',
       hasNextPage: true
@@ -41,7 +43,10 @@ export default {
   methods: {
     async fetchCharacters() {
       try {
+        this.page = this.inputPage || 1
+
         const response = await api.getCharacters(this.page, this.name, this.status)
+        
         this.characters = response.data.results
         this.hasNextPage = response.data.info.next !== null
       } catch (error) {

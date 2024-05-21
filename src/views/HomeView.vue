@@ -26,6 +26,7 @@
 <script>
 import api from '../api'
 import CharacterCard from '../components/CharacterCard.vue'
+import debounce from 'lodash/debounce'
 
 export default {
   name: 'HomeView',
@@ -37,7 +38,12 @@ export default {
       inputPage: 1,
       name: '',
       status: '',
-      hasNextPage: true
+      hasNextPage: true,
+      previousParams: {
+        page: 1,
+        name: '',
+        status: ''
+      }
     }
   },
   methods: {
@@ -55,24 +61,38 @@ export default {
       }
     },
     applyFilters() {
-      this.page = this.inputPage || 1
+      const params = {
+        page: this.inputPage,
+        name: this.name,
+        status: this.status
+      }
 
-      this.fetchCharacters()
+      if (JSON.stringify(params) === JSON.stringify(this.previousParams)) {
+        return
+      }
+
+      this.previousParams = { ...params }
+
+      this.page = this.inputPage || 1
+      this.debouncedFetchCharacters()
     },
     nextPage() {
       if (this.hasNextPage) {
         this.page++
-        this.fetchCharacters()
+        this.inputPage = this.page
+        this.debouncedFetchCharacters()
       }
     },
     prevPage() {
       if (this.page > 1) {
         this.page--
-        this.fetchCharacters()
+        this.inputPage = this.page
+        this.debouncedFetchCharacters()
       }
     }
   },
   created() {
+    this.debouncedFetchCharacters = debounce(this.fetchCharacters, 300)
     this.fetchCharacters()
   }
 }

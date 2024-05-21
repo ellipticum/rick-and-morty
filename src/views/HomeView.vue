@@ -43,20 +43,20 @@ export default {
   methods: {
     async fetchCharacters() {
       try {
-        this.page = this.inputPage || 1
-
         const response = await api.getCharacters(this.page, this.name, this.status)
-        
+
         this.characters = response.data.results
         this.hasNextPage = response.data.info.next !== null
       } catch (error) {
         console.error(error)
 
         this.characters = []
+        this.hasNextPage = false
       }
     },
     applyFilters() {
-      this.page = 1
+      this.page = this.inputPage || 1
+
       this.fetchCharacters()
     },
     nextPage() {

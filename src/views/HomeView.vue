@@ -1,71 +1,83 @@
 <template>
-    <div class="home">
-      <div class="filters">
-        <input type="text" v-model="name" placeholder="Search by name" @input="fetchCharacters" />
-        <select v-model="status" @change="fetchCharacters">
-          <option value="">All statuses</option>
-          <option value="alive">Alive</option>
-          <option value="dead">Dead</option>
-          <option value="unknown">Unknown</option>
-        </select>
-      </div>
-      <div class="character-list">
-        <CharacterCard v-for="character in characters" :key="character.id" :character="character" />
-      </div>
-      <div class="pagination">
-        <button @click="prevPage" :disabled="page === 1">Previous</button>
-        <span>Page {{ page }}</span>
-        <button @click="nextPage" :disabled="!hasNextPage">Next</button>
-      </div>
+  <div class="home">
+    <div class="filters">
+      <input type="text" v-model="name" placeholder="Search by name" />
+      <select v-model="status">
+        <option value="">All statuses</option>
+        <option value="alive">Alive</option>
+        <option value="dead">Dead</option>
+        <option value="unknown">Unknown</option>
+      </select>
+      <button @click="applyFilters">Apply</button>
     </div>
-  </template>
-  
-  <script>
-  import api from '../api'
-  import CharacterCard from '../components/CharacterCard.vue'
-  
-  export default {
-    name: 'HomeView',
-    components: { CharacterCard },
-    data() {
-      return {
-        characters: [],
-        page: 1,
-        name: '',
-        status: '',
-        hasNextPage: true
-      }
-    },
-    methods: {
-      async fetchCharacters() {
+    <div class="character-list">
+      <div v-if="characters.length === 0">Not found</div>
+      <CharacterCard v-for="character in characters" :key="character.id" :character="character" />
+    </div>
+    <div class="pagination">
+      <button @click="prevPage" :disabled="page === 1">Previous</button>
+      <span>Page {{ page }}</span>
+      <button @click="nextPage" :disabled="!hasNextPage">Next</button>
+    </div>
+  </div>
+</template>
+
+<script>
+import api from '../api'
+import CharacterCard from '../components/CharacterCard.vue'
+
+export default {
+  name: 'HomeView',
+  components: { CharacterCard },
+  data() {
+    return {
+      characters: [],
+      page: 1,
+      name: '',
+      status: '',
+      hasNextPage: true
+    }
+  },
+  methods: {
+    async fetchCharacters() {
+      try {
         const response = await api.getCharacters(this.page, this.name, this.status)
         this.characters = response.data.results
         this.hasNextPage = response.data.info.next !== null
-      },
-      nextPage() {
-        if (this.hasNextPage) {
-          this.page++
-          this.fetchCharacters()
-        }
-      },
-      prevPage() {
-        if (this.page > 1) {
-          this.page--
-          this.fetchCharacters()
-        }
+      } catch (error) {
+        console.error(error)
+
+        this.characters = []
       }
     },
-    created() {
+    applyFilters() {
+      this.page = 1
       this.fetchCharacters()
+    },
+    nextPage() {
+      if (this.hasNextPage) {
+        this.page++
+        this.fetchCharacters()
+      }
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page--
+        this.fetchCharacters()
+      }
     }
+  },
+  created() {
+    this.fetchCharacters()
   }
-  </script>
-  
-  <style scoped>
+}
+</script>
+
+<style scoped>
   .home {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 16px;
+    min-height: 100vh;
   }
   
   .filters {
@@ -91,7 +103,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 16px;
+    margin-top: 24px;
   }
   
   .pagination button {
